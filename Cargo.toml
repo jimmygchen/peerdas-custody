@@ -1,0 +1,13 @@
+[package]
+name = "peerdas-custody"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+primitive-types = "0.12"
+ring = { version = "0.17.8", features = ["wasm32_unknown_unknown_js"] }
+itertools = "0.13.0"

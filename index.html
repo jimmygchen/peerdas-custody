@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compute PeerDAS Node Custody Columns (EIP-7594)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            padding: 8px;
+            font-size: 1em;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .output, .error {
+            margin-top: 20px;
+        }
+        .results-header {
+            display: none;
+        }
+        .error {
+            color: red;
+        }
+        .result-text {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .info {
+            font-style: italic;
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            .buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<h1>Compute PeerDAS Node Custody Columns</h1>
+<form id="input-form">
+    <div class="form-group">
+        <label for="node_id">Node ID:</label>
+        <input type="text" id="node_id" name="node_id"
+               placeholder="4bcd09a4eb99eda4a3766d93a204aeaa5886723887c887d90ebff9ae960c0814" required>
+    </div>
+    <div class="form-group">
+        <label for="subnet_count">Subnet Count (optional, 0-32):</label>
+        <input type="number" id="subnet_count" name="subnet_count" placeholder="2">
+    </div>
+    <div class="buttons">
+        <button type="submit">Compute</button>
+        <button type="button" id="clear-button">Clear</button>
+    </div>
+</form>
+<div class="info">
+    EIP-7594 <a
+        href="https://github.com/ethereum/consensus-specs/blob/dev/specs/_features/eip7594/das-core.md#get_custody_columns"
+        target="_blank">get_custody_columns</a> implementation from Lighthouse commit <a
+        href="https://github.com/sigp/lighthouse/commit/656cd8db66949cfa70a1b3461a102a83b269509c"
+        target="_blank">656cd</a>.
+</div>
+<div class="output">
+    <h2 class="results-header" id="results-header">Results</h2>
+    <div id="custody-subnets"></div>
+    <div id="custody-columns"></div>
+</div>
+<div class="error" id="error"></div>
+
+<script type="module">
+    import init, { get_data_column_sidecar_subnet_count, get_custody_subnets, get_custody_columns } from './pkg/peerdas_custody.js';
+
+    async function main() {
+        await init();
+
+        const DATA_COLUMN_SIDECAR_SUBNET_COUNT = await get_data_column_sidecar_subnet_count();
+
+        document.getElementById('input-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nodeId = document.getElementById('node_id').value;
+            const subnetCount = document.getElementById('subnet_count').value;
+            const errorDiv = document.getElementById('error');
+            const resultsHeader = document.getElementById('results-header');
+            const custodySubnetsDiv = document.getElementById('custody-subnets');
+            const custodyColumnsDiv = document.getElementById('custody-columns');
+
+            errorDiv.textContent = '';
+            custodySubnetsDiv.textContent = '';
+            custodyColumnsDiv.textContent = '';
+            resultsHeader.style.display = 'none';
+
+            if (subnetCount && (subnetCount < 1 || subnetCount > DATA_COLUMN_SIDECAR_SUBNET_COUNT)) {
+                errorDiv.textContent = `Subnet count must be between 1 and ${DATA_COLUMN_SIDECAR_SUBNET_COUNT}.`;
+                return;
+            }
+
+            try {
+                const custodySubnets = await get_custody_subnets(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
+                const subnetsArray = Array.from(custodySubnets);
+                custodySubnetsDiv.innerHTML = `<span class="result-text">Custody Subnets: ${subnetsArray.join(', ')}</span><button onclick="copyToClipboard('${subnetsArray.join(', ')}')">📋 Copy</button>`;
+                resultsHeader.style.display = 'block';
+            } catch (error) {
+                errorDiv.textContent = `Error in get_custody_subnets: ${error.message || error}`;
+                return;
+            }
+
+            try {
+                const custodyColumns = await get_custody_columns(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
+                const columnsArray = Array.from(custodyColumns);
+                custodyColumnsDiv.innerHTML = `<span class="result-text">Custody Columns: ${columnsArray.join(', ')}</span><button onclick="copyToClipboard('${columnsArray.join(', ')}')">📋 Copy</button>`;
+            } catch (error) {
+                errorDiv.textContent = `Error in get_custody_columns: ${error.message || error}`;
+            }
+        });
+
+        document.getElementById('clear-button').addEventListener('click', () => {
+            document.getElementById('node_id').value = '';
+            document.getElementById('subnet_count').value = '';
+            const errorDiv = document.getElementById('error');
+            const custodySubnetsDiv = document.getElementId('custody-subnets');
+            const custodyColumnsDiv = document.getElementById('custody-columns');
+            const resultsHeader = document.getElementById('results-header');
+
+            errorDiv.textContent = '';
+            custodySubnetsDiv.textContent = '';
+            custodyColumnsDiv.textContent = '';
+            resultsHeader.style.display = 'none';
+        });
+    }
+
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard');
+        }).catch(err => {
+            alert('Failed to copy: ', err);
+        });
+    }
+
+    main();
+</script>
+</body>
+</html>
