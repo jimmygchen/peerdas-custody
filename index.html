@@ -220,7 +220,7 @@
         document.getElementById('clear-button').addEventListener('click', () => {
             document.getElementById('peer_id_radio').checked = true;
             peerIdInput.disabled = false;
-            peerIdInput.value = PEER_ID_PLACEHOLDER;
+            peerIdInput.value = '';
             nodeIdInput.disabled = true;
             nodeIdInput.value = '';
             document.getElementById('subnet_count').value = '';
