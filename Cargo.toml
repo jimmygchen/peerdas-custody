@@ -11,3 +11,10 @@ wasm-bindgen = "0.2"
 primitive-types = "0.12"
 ring = { version = "0.17.8", features = ["wasm32_unknown_unknown_js"] }
 itertools = "0.13.0"
+tiny-keccak = { version = "2", features = ["keccak"] }
+hex = "0.4.3"
+
+[dependencies.libp2p]
+version = "0.53"
+default-features = false
+features = ["identify", "secp256k1"]

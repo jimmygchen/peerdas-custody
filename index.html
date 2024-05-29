@@ -20,7 +20,7 @@
         .form-group label {
             margin-bottom: 5px;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             padding: 8px;
             font-size: 1em;
         }
@@ -78,9 +78,21 @@
 <h1>Compute PeerDAS Node Custody Columns</h1>
 <form id="input-form">
     <div class="form-group">
+        <label>Select Input Type:</label>
+        <div>
+            <input type="radio" id="peer_id_radio" name="input_type" value="peer_id" checked>
+            <label for="peer_id_radio">Peer ID</label>
+            <input type="radio" id="node_id_radio" name="input_type" value="node_id">
+            <label for="node_id_radio">Node ID</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="peer_id">Peer ID:</label>
+        <input type="text" id="peer_id" name="peer_id">
+    </div>
+    <div class="form-group">
         <label for="node_id">Node ID:</label>
-        <input type="text" id="node_id" name="node_id"
-               placeholder="4bcd09a4eb99eda4a3766d93a204aeaa5886723887c887d90ebff9ae960c0814" required>
+        <input type="text" id="node_id" name="node_id" disabled>
     </div>
     <div class="form-group">
         <label for="subnet_count">Subnet Count (optional, 0-32):</label>
@@ -116,16 +128,44 @@
 </div>
 
 <script type="module">
-    import init, { get_data_column_sidecar_subnet_count, get_custody_subnets, get_custody_columns } from './pkg/peerdas_custody.js';
+    import init, { get_data_column_sidecar_subnet_count, get_custody_subnets_from_peer_id, get_custody_subnets, get_custody_columns } from './pkg/peerdas_custody.js';
 
     async function main() {
         await init();
 
+        const PEER_ID_PLACEHOLDER = "16Uiu2HAmQH8aoyiLSo1JwhZ1fHVLhHsVYXiMumffa8DhwTgMkdRF";
+        const NODE_ID_PLACEHOLDER = "5e17a23d36023ab1106e4ef1cd8657f4214f60776a2602a5ea081fcee2c72b88";
         const DATA_COLUMN_SIDECAR_SUBNET_COUNT = await get_data_column_sidecar_subnet_count();
+
+        const nodeIdInput = document.getElementById('node_id');
+        const peerIdInput = document.getElementById('peer_id');
+        const nodeIdRadio = document.getElementById('node_id_radio');
+        const peerIdRadio = document.getElementById('peer_id_radio');
+
+        peerIdInput.value = PEER_ID_PLACEHOLDER;
+
+        nodeIdRadio.addEventListener('change', () => {
+            if (nodeIdRadio.checked) {
+                nodeIdInput.disabled = false;
+                nodeIdInput.value = NODE_ID_PLACEHOLDER;
+                peerIdInput.disabled = true;
+                peerIdInput.value = '';
+            }
+        });
+
+        peerIdRadio.addEventListener('change', () => {
+            if (peerIdRadio.checked) {
+                peerIdInput.disabled = false;
+                peerIdInput.value = PEER_ID_PLACEHOLDER;
+                nodeIdInput.disabled = true;
+                nodeIdInput.value = '';
+            }
+        });
 
         document.getElementById('input-form').addEventListener('submit', async (event) => {
             event.preventDefault();
-            const nodeId = document.getElementById('node_id').value;
+            const nodeId = nodeIdInput.value.trim();
+            const peerId = peerIdInput.value.trim();
             const subnetCount = document.getElementById('subnet_count').value;
             const errorDiv = document.getElementById('error');
             const resultsHeader = document.getElementById('results-header');
@@ -142,8 +182,24 @@
                 return;
             }
 
+            if (nodeIdRadio.checked && !nodeId) {
+                errorDiv.textContent = 'Please enter a Node ID.';
+                return;
+            }
+
+            if (peerIdRadio.checked && !peerId) {
+                errorDiv.textContent = 'Please enter a Peer ID.';
+                return;
+            }
+
+            let custodySubnets;
+
             try {
-                const custodySubnets = await get_custody_subnets(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
+                if (peerIdRadio.checked) {
+                    custodySubnets = await get_custody_subnets_from_peer_id(peerId, subnetCount ? parseInt(subnetCount) : undefined);
+                } else {
+                    custodySubnets = await get_custody_subnets(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
+                }
                 const subnetsArray = Array.from(custodySubnets);
                 custodySubnetsDiv.innerHTML = `<span class="result-text">Custody Subnets: ${subnetsArray.join(', ')}</span><button onclick="copyToClipboard('${subnetsArray.join(', ')}')">📋 Copy</button>`;
                 resultsHeader.style.display = 'block';
@@ -153,7 +209,7 @@
             }
 
             try {
-                const custodyColumns = await get_custody_columns(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
+                const custodyColumns = await get_custody_columns(custodySubnets);
                 const columnsArray = Array.from(custodyColumns);
                 custodyColumnsDiv.innerHTML = `<span class="result-text">Custody Columns: ${columnsArray.join(', ')}</span><button onclick="copyToClipboard('${columnsArray.join(', ')}')">📋 Copy</button>`;
             } catch (error) {
@@ -162,29 +218,28 @@
         });
 
         document.getElementById('clear-button').addEventListener('click', () => {
-            document.getElementById('node_id').value = '';
+            document.getElementById('peer_id_radio').checked = true;
+            peerIdInput.disabled = false;
+            peerIdInput.value = PEER_ID_PLACEHOLDER;
+            nodeIdInput.disabled = true;
+            nodeIdInput.value = '';
             document.getElementById('subnet_count').value = '';
-            const errorDiv = document.getElementById('error');
-            const custodySubnetsDiv = document.getElementById('custody-subnets');
-            const custodyColumnsDiv = document.getElementById('custody-columns');
-            const resultsHeader = document.getElementById('results-header');
-
-            errorDiv.textContent = '';
-            custodySubnetsDiv.textContent = '';
-            custodyColumnsDiv.textContent = '';
-            resultsHeader.style.display = 'none';
+            document.getElementById('error').textContent = '';
+            document.getElementById('results-header').style.display = 'none';
+            document.getElementById('custody-subnets').textContent = '';
+            document.getElementById('custody-columns').textContent = '';
         });
     }
 
-    window.copyToClipboard = function(text) {
+    window.onload = main;
+
+    function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Copied to clipboard');
-        }).catch(err => {
-            alert('Failed to copy: ', err);
+            alert('Copied to clipboard!');
+        }).catch((err) => {
+            alert('Failed to copy text: ', err);
         });
     }
-
-    main();
 </script>
 </body>
 </html>

@@ -11,11 +11,16 @@ export function get_data_column_sidecar_subnet_count(): number;
 */
 export function get_custody_subnets(node_id: string, subnet_count?: number): Uint32Array;
 /**
-* @param {string} node_id
-* @param {number | undefined} [custody_subnet_count]
+* @param {string} peer_id
+* @param {number | undefined} [subnet_count]
 * @returns {Uint32Array}
 */
-export function get_custody_columns(node_id: string, custody_subnet_count?: number): Uint32Array;
+export function get_custody_subnets_from_peer_id(peer_id: string, subnet_count?: number): Uint32Array;
+/**
+* @param {Uint32Array} custody_subnets
+* @returns {Uint32Array}
+*/
+export function get_custody_columns(custody_subnets: Uint32Array): Uint32Array;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -23,7 +28,8 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly get_data_column_sidecar_subnet_count: () => number;
   readonly get_custody_subnets: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly get_custody_columns: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly get_custody_subnets_from_peer_id: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly get_custody_columns: (a: number, b: number, c: number) => void;
   readonly ring_core_0_17_8_bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;

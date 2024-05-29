@@ -163,16 +163,16 @@ export function get_custody_subnets(node_id, subnet_count) {
 }
 
 /**
-* @param {string} node_id
-* @param {number | undefined} [custody_subnet_count]
+* @param {string} peer_id
+* @param {number | undefined} [subnet_count]
 * @returns {Uint32Array}
 */
-export function get_custody_columns(node_id, custody_subnet_count) {
+export function get_custody_subnets_from_peer_id(peer_id, subnet_count) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(node_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(peer_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.get_custody_columns(retptr, ptr0, len0, !isLikeNone(custody_subnet_count), isLikeNone(custody_subnet_count) ? 0 : custody_subnet_count);
+        wasm.get_custody_subnets_from_peer_id(retptr, ptr0, len0, !isLikeNone(subnet_count), isLikeNone(subnet_count) ? 0 : subnet_count);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -180,6 +180,32 @@ export function get_custody_columns(node_id, custody_subnet_count) {
         if (r3) {
             throw takeObject(r2);
         }
+        var v2 = getArrayU32FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 4, 4);
+        return v2;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+function passArray32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4, 4) >>> 0;
+    getUint32Memory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+/**
+* @param {Uint32Array} custody_subnets
+* @returns {Uint32Array}
+*/
+export function get_custody_columns(custody_subnets) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray32ToWasm0(custody_subnets, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.get_custody_columns(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
         var v2 = getArrayU32FromWasm0(r0, r1).slice();
         wasm.__wbindgen_free(r0, r1 * 4, 4);
         return v2;
