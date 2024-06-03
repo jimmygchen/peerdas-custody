@@ -6,11 +6,22 @@
     <title>Compute PeerDAS Node Custody Columns (EIP-7594)</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: monospace, Arial, sans-serif;
             padding: 20px;
             max-width: 600px;
             margin: auto;
             box-sizing: border-box;
+            background-color: #121212;
+            color: #e0e0e0;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        a {
+            color: #1e90ff; /* DodgerBlue */
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
         .form-group {
             display: flex;
@@ -23,10 +34,32 @@
         .form-group input, .form-group select {
             padding: 8px;
             font-size: 1em;
+            background-color: inherit;
+            color: inherit;
+            border: 1px solid currentColor;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .form-group input:disabled {
+            background-color: #2a2a2a;
+            color: #777;
         }
         .buttons {
             display: flex;
             justify-content: space-between;
+            margin-top: 20px;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .buttons button:hover {
+            background-color: #0056b3;
         }
         .output, .error {
             margin-top: 20px;
@@ -35,7 +68,7 @@
             display: none;
         }
         .error {
-            color: red;
+            color: #ff7373;
         }
         .result-text {
             display: inline-block;
@@ -55,7 +88,7 @@
             opacity: 1;
         }
         .github-link a {
-            color: #000;
+            color: inherit;
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -75,7 +108,7 @@
     </style>
 </head>
 <body>
-<h1>Compute PeerDAS Node Custody Columns</h1>
+<h1>Compute PeerDAS Node Custody</h1>
 <form id="input-form">
     <div class="form-group">
         <label>Select Input Type:</label>
@@ -119,7 +152,7 @@
 <div class="github-link">
     <a href="https://github.com/jimmygchen/peerdas-custody" target="_blank">
         <svg height="24" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
-            <path fill="#000000" fill-rule="evenodd"
+            <path fill="currentColor" fill-rule="evenodd"
                   d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.14 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
             </path>
         </svg>
@@ -201,7 +234,7 @@
                     custodySubnets = await get_custody_subnets(nodeId, subnetCount ? parseInt(subnetCount) : undefined);
                 }
                 const subnetsArray = Array.from(custodySubnets);
-                custodySubnetsDiv.innerHTML = `<span class="result-text">Custody Subnets: ${subnetsArray.join(', ')}</span><button onclick="copyToClipboard('${subnetsArray.join(', ')}')">📋 Copy</button>`;
+                custodySubnetsDiv.innerHTML = `<span class="result-text">Custody Subnets: ${subnetsArray.join(', ')}</span>`;
                 resultsHeader.style.display = 'block';
             } catch (error) {
                 errorDiv.textContent = `Error in get_custody_subnets: ${error.message || error}`;
@@ -211,7 +244,7 @@
             try {
                 const custodyColumns = await get_custody_columns(custodySubnets);
                 const columnsArray = Array.from(custodyColumns);
-                custodyColumnsDiv.innerHTML = `<span class="result-text">Custody Columns: ${columnsArray.join(', ')}</span><button onclick="copyToClipboard('${columnsArray.join(', ')}')">📋 Copy</button>`;
+                custodyColumnsDiv.innerHTML = `<span class="result-text">Custody Columns: ${columnsArray.join(', ')}</span>`;
             } catch (error) {
                 errorDiv.textContent = `Error in get_custody_columns: ${error.message || error}`;
             }
@@ -232,14 +265,6 @@
     }
 
     window.onload = main;
-
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Copied to clipboard!');
-        }).catch((err) => {
-            alert('Failed to copy text: ', err);
-        });
-    }
 </script>
 </body>
 </html>
