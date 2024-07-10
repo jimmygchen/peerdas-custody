@@ -1,4 +1,4 @@
-Tool for computing Ethereum PeerDAS (EIP-7594) custody subnets and columns from `NodeId`.
+Tool for computing Ethereum PeerDAS (EIP-7594) custody subnets and columns from a node ID or peer ID.
 
 URL: https://jimmygchen.github.io/peerdas-custody
 
