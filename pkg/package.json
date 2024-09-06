@@ -1,12 +1,13 @@
 {
   "name": "peerdas-custody",
+  "type": "module",
   "version": "0.1.0",
   "files": [
     "peerdas_custody_bg.wasm",
     "peerdas_custody.js",
     "peerdas_custody.d.ts"
   ],
-  "module": "peerdas_custody.js",
+  "main": "peerdas_custody.js",
   "types": "peerdas_custody.d.ts",
   "sideEffects": [
     "./snippets/*"
