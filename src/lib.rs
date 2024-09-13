@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 const DEFAULT_SUBNET_COUNT: u32 = 4;
 const NUM_OF_COLUMNS: u32 = 128;
-const DATA_COLUMN_SIDECAR_SUBNET_COUNT: u32 = 64;
+const DATA_COLUMN_SIDECAR_SUBNET_COUNT: u32 = 128;
 const DATA_COLUMNS_PER_SUBNET: u32 = NUM_OF_COLUMNS / DATA_COLUMN_SIDECAR_SUBNET_COUNT;
 
 #[wasm_bindgen]
